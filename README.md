@@ -32,21 +32,41 @@ NitroAGI NEXUS creates more human-like intelligence by orchestrating multiple sp
 
 ```
 ┌─────────────────────────────────────────────┐
-│                 NitroAGI                    │
+│           PREFRONTAL CORTEX                 │
+│     (Executive Control & Planning)          │
 ├─────────────────────────────────────────────┤
 │              NEXUS Core Engine              │
 │        (Neural Executive Unit System)       │
-├─────────┬─────────┬─────────┬─────────────────┤
-│Language │ Vision  │  Audio  │    Reasoning    │
-│ Module  │ Module  │ Module  │     Module      │
-├─────────┴─────────┴─────────┴─────────────────┤
+├─────────┬─────────┬─────────┬──────────────┤
+│Language │ Vision  │  Audio  │   Reasoning  │
+│ Module  │ Module  │ Module  │    Module    │
+├─────────┴─────────┴─────────┴──────────────┤
+│          Multi-Layer Connections            │
+│  • Shared Memory (<1ms reflex)              │
+│  • gRPC Direct (1-10ms neural)              │
+│  • Event Bus (10-100ms cortical)            │
+│  • Message Queue (100ms+ conscious)         │
+├─────────────────────────────────────────────┤
 │              Memory System                  │
-│     (Working | Episodic | Semantic)        │
+│     (Working | Episodic | Semantic)         │
 ├─────────────────────────────────────────────┤
 │             6G Network Layer                │
-│      (Ultra-Low Latency Optimization)      │
+│      (Ultra-Low Latency Optimization)       │
 └─────────────────────────────────────────────┘
 ```
+
+### 🧠 Brain-Inspired Design
+
+**Prefrontal Cortex Module**
+- Task decomposition and planning
+- Action selection and monitoring
+- Executive control and intervention
+- Working memory management (7±2 capacity)
+
+**Neural Plasticity**
+- Connections strengthen with successful use (Hebbian learning)
+- Adaptive routing based on performance
+- Self-optimizing communication paths
 
 ## 🎯 Quick Start
 
