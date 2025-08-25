@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NitroAGI NEXUS - Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            height: 600px;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #f7f9fc;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .module-list {
+            list-style: none;
+        }
+
+        .module-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .module-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .module-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+
+        .module-item.inactive .module-status {
+            background: #ff9800;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header .status {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.ai {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.ai .message-bubble {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff5252;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="connectionText">Disconnected</span>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="sidebar">
+                <h2>Active Modules</h2>
+                <ul class="module-list" id="moduleList">
+                    <li class="module-item">
+                        <span>Language Processing</span>
+                        <span class="module-status"></span>
+                    </li>
+                    <li class="module-item">
+                        <span>Vision Analysis</span>
+                        <span class="module-status"></span>
+                    </li>
+                    <li class="module-item">
+                        <span>Reasoning Engine</span>
+                        <span class="module-status"></span>
+                    </li>
+                    <li class="module-item">
+                        <span>Learning System</span>
+                        <span class="module-status"></span>
+                    </li>
+                    <li class="module-item">
+                        <span>Creative Thinking</span>
+                        <span class="module-status"></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="chat-main">
+                <div class="chat-header">
+                    <h1>NitroAGI NEXUS</h1>
+                    <div class="status">Neural Executive Unit System - Ready</div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-bubble">
+                            Hello! I'm NEXUS, your AI assistant powered by advanced reasoning, learning, and creative thinking capabilities. How can I help you today?
+                        </div>
+                        <div class="message-time"></div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    NEXUS is thinking...
+                </div>
+
+                <div class="chat-input">
+                    <div class="input-container">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="Type your message here..."
+                            autocomplete="off"
+                        />
+                        <button class="send-button" id="sendButton">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class NexusChat {
+            constructor() {
+                this.ws = null;
+                this.clientId = this.generateClientId();
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 1000;
+                
+                this.initializeElements();
+                this.connectWebSocket();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.statusDot = document.getElementById('statusDot');
+                this.connectionText = document.getElementById('connectionText');
+                this.moduleList = document.getElementById('moduleList');
+            }
+
+            generateClientId() {
+                return 'client_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            connectWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+                
+                try {
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => this.onWebSocketOpen();
+                    this.ws.onmessage = (event) => this.onWebSocketMessage(event);
+                    this.ws.onclose = () => this.onWebSocketClose();
+                    this.ws.onerror = (error) => this.onWebSocketError(error);
+                } catch (error) {
+                    console.error('Failed to connect:', error);
+                    this.updateConnectionStatus(false);
+                }
+            }
+
+            onWebSocketOpen() {
+                console.log('Connected to NEXUS');
+                this.reconnectAttempts = 0;
+                this.updateConnectionStatus(true);
+                
+                // Send initial connection message
+                this.sendWebSocketMessage({
+                    type: 'connect',
+                    clientId: this.clientId
+                });
+            }
+
+            onWebSocketMessage(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    this.handleServerMessage(message);
+                } catch (error) {
+                    console.error('Failed to parse message:', error);
+                }
+            }
+
+            onWebSocketClose() {
+                console.log('Disconnected from NEXUS');
+                this.updateConnectionStatus(false);
+                this.attemptReconnect();
+            }
+
+            onWebSocketError(error) {
+                console.error('WebSocket error:', error);
+                this.updateConnectionStatus(false);
+            }
+
+            attemptReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+                    
+                    console.log(`Reconnecting in ${delay}ms... (Attempt ${this.reconnectAttempts})`);
+                    
+                    setTimeout(() => {
+                        this.connectWebSocket();
+                    }, delay);
+                } else {
+                    console.error('Max reconnection attempts reached');
+                    this.showMessage('Connection lost. Please refresh the page.', 'system');
+                }
+            }
+
+            updateConnectionStatus(connected) {
+                if (connected) {
+                    this.statusDot.classList.add('connected');
+                    this.connectionText.textContent = 'Connected';
+                } else {
+                    this.statusDot.classList.remove('connected');
+                    this.connectionText.textContent = 'Disconnected';
+                }
+            }
+
+            setupEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                // Module clicks
+                this.moduleList.addEventListener('click', (e) => {
+                    const moduleItem = e.target.closest('.module-item');
+                    if (moduleItem) {
+                        const moduleName = moduleItem.querySelector('span').textContent;
+                        this.messageInput.value = `Tell me about the ${moduleName} module`;
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            sendMessage() {
+                const message = this.messageInput.value.trim();
+                
+                if (!message) return;
+                
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                    this.showMessage('Not connected to server', 'system');
+                    return;
+                }
+                
+                // Show user message
+                this.showMessage(message, 'user');
+                
+                // Clear input
+                this.messageInput.value = '';
+                
+                // Send to server
+                this.sendWebSocketMessage({
+                    type: 'chat_message',
+                    message: message
+                });
+                
+                // Show typing indicator
+                this.showTypingIndicator(true);
+            }
+
+            sendWebSocketMessage(data) {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify(data));
+                }
+            }
+
+            handleServerMessage(message) {
+                switch (message.type) {
+                    case 'chat_message':
+                        if (message.client_id === 'nexus') {
+                            this.showTypingIndicator(false);
+                            this.showMessage(message.message, 'ai');
+                        }
+                        break;
+                    
+                    case 'system_status':
+                        this.updateSystemStatus(message);
+                        break;
+                    
+                    case 'error':
+                        this.showMessage(`Error: ${message.error}`, 'system');
+                        this.showTypingIndicator(false);
+                        break;
+                }
+            }
+
+            showMessage(text, sender = 'user') {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                bubbleDiv.textContent = text;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = new Date().toLocaleTimeString();
+                
+                messageDiv.appendChild(bubbleDiv);
+                messageDiv.appendChild(timeDiv);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            showTypingIndicator(show) {
+                if (show) {
+                    this.typingIndicator.classList.add('active');
+                } else {
+                    this.typingIndicator.classList.remove('active');
+                }
+            }
+
+            updateSystemStatus(status) {
+                // Update module statuses if needed
+                console.log('System status:', status);
+            }
+        }
+
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.nexusChat = new NexusChat();
+        });
+    </script>
+</body>
+</html>
