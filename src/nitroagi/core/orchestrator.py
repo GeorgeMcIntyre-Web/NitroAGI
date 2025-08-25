@@ -22,6 +22,7 @@ from nitroagi.core.base import (
 )
 from nitroagi.core.exceptions import OrchestratorException, TimeoutException
 from nitroagi.core.message_bus import Message, MessageBus, MessagePriority, MessageType
+from nitroagi.core.prefrontal_cortex import PrefrontalCortex
 
 
 class TaskStatus(Enum):
@@ -192,6 +193,9 @@ class Orchestrator:
         self._running = False
         self._workers: List[asyncio.Task] = []
         
+        # Initialize prefrontal cortex for executive control
+        self.prefrontal_cortex = PrefrontalCortex()
+        
         self._metrics = {
             "tasks_received": 0,
             "tasks_completed": 0,
@@ -210,6 +214,7 @@ class Orchestrator:
             self._workers.append(worker)
         
         self.logger.info(f"NEXUS core engine started with {self.max_concurrent_tasks} workers")
+        self.logger.info("Prefrontal cortex executive control system activated")
     
     async def stop(self) -> None:
         """Stop the orchestrator."""
@@ -343,7 +348,7 @@ class Orchestrator:
         self.logger.debug(f"Worker {worker_id} stopped")
     
     async def _process_task(self, request: TaskRequest) -> None:
-        """Process a task request.
+        """Process a task request using prefrontal cortex executive control.
         
         Args:
             request: Task request to process
@@ -354,22 +359,35 @@ class Orchestrator:
             return
         
         result.status = TaskStatus.PROCESSING
-        self.logger.info(f"Processing task {request.id}")
+        self.logger.info(f"Processing task {request.id} with executive control")
         
         try:
-            # Execute based on strategy
-            if request.execution_strategy == ExecutionStrategy.SEQUENTIAL:
-                await self._execute_sequential(request, result)
-            elif request.execution_strategy == ExecutionStrategy.PARALLEL:
-                await self._execute_parallel(request, result)
-            elif request.execution_strategy == ExecutionStrategy.PIPELINE:
-                await self._execute_pipeline(request, result)
-            elif request.execution_strategy == ExecutionStrategy.CONSENSUS:
-                await self._execute_consensus(request, result)
-            else:
-                raise OrchestratorException(
-                    f"Unknown execution strategy: {request.execution_strategy}"
-                )
+            # Use prefrontal cortex for executive processing
+            available_modules = [module.name for module in self._get_available_modules()]
+            context = {
+                "task_id": str(request.id),
+                "execution_strategy": request.execution_strategy.value,
+                "required_capabilities": [cap.value for cap in request.required_capabilities],
+                "priority": request.priority,
+                "timeout": request.timeout_seconds,
+                "metadata": request.metadata
+            }
+            
+            # Convert input data to goal string for prefrontal cortex
+            goal = self._extract_goal_from_request(request)
+            
+            # Execute with prefrontal cortex coordination
+            executive_result = await self.prefrontal_cortex.executive_process(
+                goal=goal,
+                context=context,
+                available_modules=available_modules
+            )
+            
+            if "error" in executive_result:
+                raise OrchestratorException(executive_result["error"])
+            
+            # Execute the planned steps with traditional orchestrator
+            await self._execute_with_executive_plan(request, result, executive_result)
             
             # Mark as completed
             result.complete(result.final_output)
@@ -555,6 +573,151 @@ class Orchestrator:
             )
             self._metrics["average_execution_time_ms"] = total_time / total_tasks
     
+    def _extract_goal_from_request(self, request: TaskRequest) -> str:
+        """Extract a goal string from task request for prefrontal cortex.
+        
+        Args:
+            request: Task request
+            
+        Returns:
+            Goal string for executive processing
+        """
+        if isinstance(request.input_data, str):
+            return request.input_data
+        elif isinstance(request.input_data, dict) and "goal" in request.input_data:
+            return request.input_data["goal"]
+        else:
+            # Generate goal from capabilities
+            capabilities = [cap.value for cap in request.required_capabilities]
+            return f"Process using capabilities: {', '.join(capabilities)}"
+    
+    def _get_available_modules(self) -> List[AIModule]:
+        """Get list of available modules.
+        
+        Returns:
+            List of available AI modules
+        """
+        # Get all modules from registry
+        modules = []
+        for capability in ModuleCapability:
+            modules.extend(self.registry.get_modules_by_capability(capability))
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_modules = []
+        for module in modules:
+            if module.name not in seen:
+                seen.add(module.name)
+                unique_modules.append(module)
+        
+        return unique_modules
+    
+    async def _execute_with_executive_plan(
+        self,
+        request: TaskRequest,
+        result: TaskResult,
+        executive_result: Dict[str, Any]
+    ) -> None:
+        """Execute task using executive plan from prefrontal cortex.
+        
+        Args:
+            request: Original task request
+            result: Task result to update
+            executive_result: Result from prefrontal cortex planning
+        """
+        execution_plan = executive_result.get("execution_plan", [])
+        
+        if not execution_plan:
+            # Fallback to traditional execution
+            await self._execute_traditional(request, result)
+            return
+        
+        # Execute each step in the plan
+        current_input = request.input_data
+        
+        for step in execution_plan:
+            task_info = step["task"]
+            action = step["action"]
+            prediction = step["prediction"]
+            
+            self.logger.info(f"Executing step: {task_info['task']} using {action}")
+            
+            # Find the appropriate module
+            module = self._find_module_by_name(action)
+            if not module:
+                self.logger.warning(f"Module {action} not found, using fallback")
+                continue
+            
+            # Create module request
+            module_request = ModuleRequest(
+                data=current_input,
+                context=request.context,
+                priority=request.priority,
+                required_capabilities=request.required_capabilities
+            )
+            
+            # Execute with timeout from prediction
+            timeout = prediction.get("predicted_time", 1000) / 1000.0  # Convert to seconds
+            
+            try:
+                response = await asyncio.wait_for(
+                    module.process(module_request),
+                    timeout=min(timeout * 2, request.timeout_seconds)  # Use prediction but cap at request timeout
+                )
+                
+                result.results.append(response)
+                current_input = response.data  # Chain outputs
+                
+            except asyncio.TimeoutError:
+                self.logger.warning(f"Step timed out: {task_info['task']}")
+                result.add_error(f"Step timeout: {task_info['task']}")
+                continue
+            except Exception as e:
+                self.logger.error(f"Step failed: {task_info['task']}: {e}")
+                result.add_error(f"Step error: {task_info['task']}: {str(e)}")
+                continue
+        
+        result.final_output = current_input
+    
+    def _find_module_by_name(self, name: str) -> Optional[AIModule]:
+        """Find module by name.
+        
+        Args:
+            name: Module name to find
+            
+        Returns:
+            Module if found, None otherwise
+        """
+        for module in self._get_available_modules():
+            if module.name == name or module.name.lower() == name.lower():
+                return module
+        return None
+    
+    async def _execute_traditional(
+        self,
+        request: TaskRequest,
+        result: TaskResult
+    ) -> None:
+        """Execute using traditional orchestrator logic as fallback.
+        
+        Args:
+            request: Task request
+            result: Task result to update
+        """
+        # Execute based on strategy
+        if request.execution_strategy == ExecutionStrategy.SEQUENTIAL:
+            await self._execute_sequential(request, result)
+        elif request.execution_strategy == ExecutionStrategy.PARALLEL:
+            await self._execute_parallel(request, result)
+        elif request.execution_strategy == ExecutionStrategy.PIPELINE:
+            await self._execute_pipeline(request, result)
+        elif request.execution_strategy == ExecutionStrategy.CONSENSUS:
+            await self._execute_consensus(request, result)
+        else:
+            raise OrchestratorException(
+                f"Unknown execution strategy: {request.execution_strategy}"
+            )
+    
     def get_metrics(self) -> Dict[str, Any]:
         """Get orchestrator metrics.
         
@@ -566,4 +729,5 @@ class Orchestrator:
             "active_tasks": len(self._active_tasks),
             "completed_tasks": len(self._completed_tasks),
             "queue_size": asyncio.run(self._task_queue.size()),
+            "prefrontal_cortex_state": self.prefrontal_cortex.get_executive_state(),
         }
