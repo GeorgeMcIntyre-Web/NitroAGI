@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.py"
+    }
+  ],
+  "env": {
+    "NITROAGI_ENV": "production",
+    "NITROAGI_DEBUG": "false",
+    "NITROAGI_LOG_LEVEL": "INFO",
+    "NITROAGI_ENABLE_6G": "true"
+  }
+}

@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # NitroAGI API Server
+  nitroagi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nitroagi-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - NITROAGI_ENV=production
+      - NITROAGI_API_HOST=0.0.0.0
+      - NITROAGI_API_PORT=8000
+      - NITROAGI_REDIS_URL=redis://redis:6379/0
+      - NITROAGI_POSTGRES_URL=postgresql://nitroagi:nitroagi@postgres:5432/nitroagi
+      - NITROAGI_LOG_LEVEL=INFO
+      - NITROAGI_ENABLE_6G=true
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config:/app/config
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - nitroagi-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Redis for memory storage
+  redis:
+    image: redis:7-alpine
+    container_name: nitroagi-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    networks:
+      - nitroagi-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # PostgreSQL for structured data
+  postgres:
+    image: postgres:15-alpine
+    container_name: nitroagi-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=nitroagi
+      - POSTGRES_PASSWORD=nitroagi
+      - POSTGRES_DB=nitroagi
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - nitroagi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nitroagi"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: nitroagi-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - nitroagi
+    networks:
+      - nitroagi-network
+    profiles:
+      - production
+
+  # Prometheus for monitoring (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nitroagi-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - nitroagi-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nitroagi-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - nitroagi-network
+    profiles:
+      - monitoring
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  nitroagi-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

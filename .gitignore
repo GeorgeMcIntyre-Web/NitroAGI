@@ -270,3 +270,5 @@ ignore/
 .ignore/
 private/
 .private/
+
+.vercel

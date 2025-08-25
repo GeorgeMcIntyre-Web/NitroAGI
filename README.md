@@ -1,51 +1,92 @@
-# NitroAGI
+# 🧠 NitroAGI NEXUS
 
-A multi-modal artificial intelligence system inspired by the human brain's modular architecture, combining Large Language Models with specialized AI components to create more robust and capable AI agents.
+> **Neural Executive Unit System** - The Brain of Next-Generation AI
+
+**NitroAGI** is an advanced Artificial General Intelligence system powered by **NEXUS**, a revolutionary neural orchestration engine that coordinates multiple AI modules in a brain-inspired architecture.
 
 ## 🧠 Vision
 
-NitroAGI aims to create a more human-like intelligence by orchestrating multiple specialized AI models, each handling different cognitive functions - similar to how the human brain has dedicated regions for language, vision, memory, and motor control.
+NitroAGI NEXUS creates more human-like intelligence by orchestrating multiple specialized AI models through its NEXUS core engine. Each module handles different cognitive functions - similar to how the human brain has dedicated regions for language, vision, memory, and motor control.
 
-## 🎯 Core Philosophy
+## 🚀 Key Features
 
-Rather than relying on a single monolithic model, NitroAGI integrates:
-- **Language Processing**: LLMs for natural language understanding and generation
-- **Visual Intelligence**: Computer vision models for image and video processing
-- **Memory Systems**: Persistent and working memory architectures
-- **Reasoning Engines**: Symbolic AI and logical inference systems
-- **Learning Agents**: Reinforcement learning for goal-directed behavior
-- **Executive Control**: Orchestration layer to coordinate all subsystems
+### NEXUS Core Engine
+- **Neural Orchestration**: Brain-inspired modular architecture
+- **Multi-Modal Processing**: Language, vision, audio, and reasoning modules
+- **6G Network Ready**: Ultra-low latency optimization (sub-millisecond)
+- **Intelligent Load Balancing**: Dynamic task distribution and resource management
 
-## 🏗️ Architecture Overview
+### Advanced Capabilities
+- **Multi-Provider LLM Support**: OpenAI, Anthropic, HuggingFace with automatic fallback
+- **Memory Systems**: Working, episodic, and semantic memory with Redis persistence
+- **Real-Time Processing**: Streaming responses and concurrent request handling
+- **Enterprise Ready**: Docker deployment, PostgreSQL persistence, comprehensive monitoring
+
+### Developer Experience
+- **Rich CLI Interface**: Interactive chat, system monitoring, module management
+- **REST API**: Complete FastAPI-based API with middleware stack
+- **Comprehensive Testing**: Unit, integration, E2E, and performance benchmarks
+- **6G Optimization**: Network profiles for holographic communication and BCI
+
+## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                Executive Controller                      │
-│            (Orchestration Layer)                        │
-└─────────────┬───────────────────────────────────────────┘
-              │
-    ┌─────────┴─────────┐
-    │   Communication   │
-    │      Bus         │
-    └─────────┬─────────┘
-              │
-┌─────────────┼─────────────────────────────────────────┐
-│             │                                         │
-▼             ▼                ▼              ▼         ▼
-┌─────────┐ ┌─────────┐ ┌─────────────┐ ┌─────────┐ ┌─────────┐
-│Language │ │ Vision  │ │   Memory    │ │Reasoning│ │Learning │
-│ Module  │ │ Module  │ │   System    │ │ Engine  │ │ Agent   │
-└─────────┘ └─────────┘ └─────────────┘ └─────────┘ └─────────┘
+┌─────────────────────────────────────────────┐
+│                 NitroAGI                    │
+├─────────────────────────────────────────────┤
+│              NEXUS Core Engine              │
+│        (Neural Executive Unit System)       │
+├─────────┬─────────┬─────────┬─────────────────┤
+│Language │ Vision  │  Audio  │    Reasoning    │
+│ Module  │ Module  │ Module  │     Module      │
+├─────────┴─────────┴─────────┴─────────────────┤
+│              Memory System                  │
+│     (Working | Episodic | Semantic)        │
+├─────────────────────────────────────────────┤
+│             6G Network Layer                │
+│      (Ultra-Low Latency Optimization)      │
+└─────────────────────────────────────────────┘
 ```
 
-## 🚀 Key Features (Planned)
+## 🎯 Quick Start
 
-- **Multi-Modal Processing**: Handle text, images, audio, and structured data
-- **Persistent Memory**: Long-term knowledge retention and episodic memory
-- **Dynamic Learning**: Continuous improvement through interaction
-- **Modular Design**: Easy to swap or upgrade individual components
-- **Explainable Reasoning**: Transparent decision-making processes
-- **Real-time Orchestration**: Intelligent coordination between subsystems
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/GeorgeMcIntyre-Web/NitroAGI.git
+cd NitroAGI
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+### Configuration
+
+```bash
+# Initialize configuration
+python -m nitroagi.cli init
+
+# Or use Docker
+docker-compose up -d
+```
+
+### Basic Usage
+
+```bash
+# Start the NEXUS engine
+nitroagi server start
+
+# Interactive chat
+nitroagi chat interactive
+
+# Single query
+nitroagi chat single "Explain quantum computing"
+
+# System status
+nitroagi status
+```
 
 ## 🛠️ Technology Stack
 

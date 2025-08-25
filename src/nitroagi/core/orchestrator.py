@@ -1,4 +1,8 @@
-"""Orchestrator for coordinating AI modules in NitroAGI."""
+"""NEXUS - Neural Executive Unit System for NitroAGI.
+
+The NEXUS core engine manages and coordinates all AI modules, handling request routing,
+load balancing, and system-wide coordination. NEXUS is the brain of NitroAGI.
+"""
 
 import asyncio
 import logging
@@ -154,7 +158,12 @@ class TaskQueue:
 
 
 class Orchestrator:
-    """Executive controller for orchestrating AI modules."""
+    """NEXUS - Neural Executive Unit System.
+    
+    The core intelligence engine that orchestrates and coordinates all AI modules
+    in the NitroAGI system. NEXUS acts as the central brain, managing module
+    communication, load balancing, and complex multi-modal AI workflows.
+    """
     
     def __init__(
         self,
@@ -163,7 +172,7 @@ class Orchestrator:
         max_concurrent_tasks: int = 10,
         max_queue_size: int = 1000
     ):
-        """Initialize the orchestrator.
+        """Initialize the NEXUS core engine.
         
         Args:
             registry: Module registry
@@ -171,7 +180,7 @@ class Orchestrator:
             max_concurrent_tasks: Maximum concurrent tasks
             max_queue_size: Maximum task queue size
         """
-        self.logger = logging.getLogger("nitroagi.core.orchestrator")
+        self.logger = logging.getLogger("nitroagi.core.nexus")
         self.registry = registry
         self.message_bus = message_bus
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -200,7 +209,7 @@ class Orchestrator:
             worker = asyncio.create_task(self._worker(f"worker-{i}"))
             self._workers.append(worker)
         
-        self.logger.info(f"Orchestrator started with {self.max_concurrent_tasks} workers")
+        self.logger.info(f"NEXUS core engine started with {self.max_concurrent_tasks} workers")
     
     async def stop(self) -> None:
         """Stop the orchestrator."""
@@ -214,7 +223,7 @@ class Orchestrator:
         if self._workers:
             await asyncio.gather(*self._workers, return_exceptions=True)
         
-        self.logger.info("Orchestrator stopped")
+        self.logger.info("NEXUS core engine stopped")
     
     async def submit_task(self, request: TaskRequest) -> UUID:
         """Submit a task for processing.
