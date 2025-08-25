@@ -24,17 +24,43 @@ class ModuleStatus(Enum):
 
 class ModuleCapability(Enum):
     """Capabilities that modules can provide."""
+    # Language capabilities
     TEXT_GENERATION = "text_generation"
     TEXT_UNDERSTANDING = "text_understanding"
+    TRANSLATION = "translation"
+    
+    # Vision capabilities
     IMAGE_PROCESSING = "image_processing"
     IMAGE_GENERATION = "image_generation"
+    IMAGE_UNDERSTANDING = "image_understanding"
+    OBJECT_DETECTION = "object_detection"
+    SCENE_ANALYSIS = "scene_analysis"
+    TEXT_EXTRACTION = "text_extraction"  # OCR
+    
+    # Audio capabilities
     AUDIO_PROCESSING = "audio_processing"
+    SPEECH_TO_TEXT = "speech_to_text"
+    TEXT_TO_SPEECH = "text_to_speech"
+    
+    # Video capabilities
     VIDEO_PROCESSING = "video_processing"
+    VIDEO_UNDERSTANDING = "video_understanding"
+    
+    # Cognitive capabilities
     REASONING = "reasoning"
     PLANNING = "planning"
+    LOGICAL_REASONING = "logical_reasoning"
+    CAUSAL_INFERENCE = "causal_inference"
+    
+    # Memory capabilities
     MEMORY_STORAGE = "memory_storage"
     MEMORY_RETRIEVAL = "memory_retrieval"
+    
+    # Learning capabilities
     LEARNING = "learning"
+    REINFORCEMENT_LEARNING = "reinforcement_learning"
+    
+    # Tool capabilities
     TOOL_USE = "tool_use"
 
 

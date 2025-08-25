@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "WebSearch",
+      "WebFetch(domain:baicsworkshop.github.io)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:deepmind.google)",
+      "Bash(python -m pytest tests/unit/test_prefrontal_cortex.py -v)",
+      "Bash(where python)",
+      "Bash(python3 -m pytest tests/unit/test_prefrontal_cortex.py -v)",
+      "Bash(py -m pytest tests/unit/test_prefrontal_cortex.py -v)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
